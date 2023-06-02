@@ -1,5 +1,8 @@
 #![allow(non_snake_case,non_camel_case_types,dead_code)]
 
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+
+mod routes;
 // The following fuctions are used to provide the basic nescessities of the game with the main function at the bottom.
 
 
@@ -35,8 +38,19 @@ fn deal(shuf: &[u8; 64]) -> [u8; 64]
     *shuf
 }
 
-//Everything runs in the main folder
 
-fn main() {
-    println!("Hello, world!");
+#[get("/")]
+async fn hello() -> impl Responder {
+    HttpResponse::Ok().json("Hello from rust and mongoDB")
+}
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    println!("Server running");
+
+    HttpServer::new(|| App::new().service(hello))
+        .bind(("localhost", 8080))?
+        .run()
+        .await
+
 }
