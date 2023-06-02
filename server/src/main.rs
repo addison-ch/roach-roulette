@@ -35,7 +35,6 @@ fn deal(shuf: &[u8; 64]) -> [u8; 64]
     *shuf
 }
 
-
 //Everything runs in the main folder
 
 fn main() {
