@@ -1,10 +1,12 @@
 #![allow(non_snake_case, non_camel_case_types, dead_code)]
 
-mod utils;
-
+use actix_web::dev::Server;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use std::collections::HashSet;
+use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
+
+mod utils;
 use utils::generate_room_code;
 
 // Struct that keeps track of application state, to keep things organized
@@ -37,13 +39,14 @@ async fn create_room(state: web::Data<AppState>) -> impl Responder {
     HttpResponse::Ok().json(room_code)
 }
 
-pub async fn run() -> Result<(), std::io::Error> {
+pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
     let active_rooms = Arc::new(Mutex::new(std::collections::HashSet::new()));
     let app_state = web::Data::new(AppState { active_rooms });
 
-    println!("Server running");
+    let port = listener.local_addr().unwrap().port();
+    println!("Server running on http://127.0.0.1:{}", port);
 
-    HttpServer::new(move || {
+    let server = HttpServer::new(move || {
         let app_state = app_state.clone();
         App::new()
             .route("/", web::get().to(hello))
@@ -51,7 +54,8 @@ pub async fn run() -> Result<(), std::io::Error> {
             .app_data(app_state)
             .route("create_room", web::get().to(create_room))
     })
-    .bind(("localhost", 8080))?
-    .run()
-    .await
+    .listen(listener)?
+    .run();
+
+    Ok(server)
 }
