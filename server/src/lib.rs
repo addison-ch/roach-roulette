@@ -1,7 +1,7 @@
 #![allow(non_snake_case, non_camel_case_types, dead_code)]
 
-use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use actix_web::dev::Server;
+use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use std::net::TcpListener;
 
 mod routes;
