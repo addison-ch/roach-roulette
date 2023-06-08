@@ -1,9 +1,9 @@
 #![allow(non_snake_case, non_camel_case_types, dead_code)]
 
 use actix_web::dev::Server;
-use std::net::TcpListener;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use std::collections::HashSet;
+use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
 
 mod utils;
