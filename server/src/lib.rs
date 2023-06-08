@@ -46,7 +46,8 @@ pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
     let port = listener.local_addr().unwrap().port();
     println!("Server running on http://127.0.0.1:{}", port);
 
-    let server = HttpServer::new(|| {
+    let server = HttpServer::new(move || {
+        let app_state = app_state.clone();
         App::new()
             .route("/", web::get().to(hello))
             .route("/health_check", web::get().to(health_check))
