@@ -15,7 +15,7 @@ struct AppState {
 }
 
 async fn hello() -> impl Responder {
-    HttpResponse::Ok().json("Hello from rust and mongoDB")
+    HttpResponse::Ok().json("Hello from rust and mongoDBs")
 }
 
 // Endpoint to be called to check on the status of the API
