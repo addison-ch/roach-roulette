@@ -52,7 +52,7 @@ pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
             .route("/", web::get().to(hello))
             .route("/health_check", web::get().to(health_check))
             .app_data(app_state)
-            .route("create_room", web::get().to(create_room))
+            .route("/create_room", web::get().to(create_room))
     })
     .listen(listener)?
     .run();
@@ -61,5 +61,3 @@ pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
 }
 
 // Add websocket server
-
-

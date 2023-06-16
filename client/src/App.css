@@ -1,24 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=Text+Me+One&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Crete+Round&family=Poppins:wght@500&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-
-  input, button {
-    box-shadow: 5px 5px rgba(0,0,0,0.5);
+/* @layer base {
+  input,
+  button {
+    box-shadow: 5px 5px rgba(0, 0, 0, 0.5);
   }
 
-  input:active, button:active {
-    box-shadow: 3px 3px rgba(0,0,0,0.5);
+  input:active,
+  button:active {
+    box-shadow: 3px 3px rgba(0, 0, 0, 0.5);
   }
-}
+} */
 
 body {
-  font-family: 'Text Me One', 'Sans Serif';
+  font-family: "Crete Round", serif;
   padding: 0;
   margin: 0;
-  background-color: rgb(214 211 209);
-  box-sizing: box-border;
+  background-color: rgba(249, 235, 226, 0.573);
   overflow-x: hidden;
 }
+
+/* .app {
+  display: "flex";
+  align-items: "center";
+  justify-content: "center";
+  height: "100vh";
+  padding: "20px";
+  box-sizing: "border-box";
+} */
