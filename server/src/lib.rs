@@ -40,7 +40,7 @@ async fn create_room(state: web::Data<AppState>) -> impl Responder {
 }
 
 pub fn run(_listener: TcpListener) -> Result<Server, std::io::Error> {
-// pub fn run() -> Result<Server, std::io::Error> {
+    // pub fn run() -> Result<Server, std::io::Error> {
     let active_rooms = Arc::new(Mutex::new(std::collections::HashSet::new()));
     let app_state = web::Data::new(AppState { active_rooms });
 
