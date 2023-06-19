@@ -2,7 +2,7 @@
 
 use actix_web::dev::Server;
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
 
@@ -11,7 +11,7 @@ use utils::generate_room_code;
 
 // Struct that keeps track of application state, to keep things organized
 struct AppState {
-    active_rooms: Arc<Mutex<HashSet<String>>>,
+    active_rooms: Arc<Mutex<HashMap<String, Vec<String>>>>,
 }
 
 async fn hello() -> impl Responder {
@@ -30,17 +30,21 @@ async fn create_room(state: web::Data<AppState>) -> impl Responder {
     let mut active_rooms = state.active_rooms.lock().unwrap();
 
     let mut room_code = generate_room_code();
-    while active_rooms.contains(&room_code) {
+    while active_rooms.contains_key(&room_code) {
         room_code = generate_room_code();
     }
 
-    active_rooms.insert(room_code.clone());
+    active_rooms.insert(room_code.clone(), Vec::new());
+    for (room, players) in active_rooms.iter() {
+        println!("{}", room);
+        println!("{:?}", players)
+    }
 
     HttpResponse::Ok().json(room_code)
 }
 
 pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
-    let active_rooms = Arc::new(Mutex::new(std::collections::HashSet::new()));
+    let active_rooms = Arc::new(Mutex::new(std::collections::HashMap::new()));
     let app_state = web::Data::new(AppState { active_rooms });
 
     let port = listener.local_addr().unwrap().port();
