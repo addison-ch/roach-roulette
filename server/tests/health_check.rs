@@ -27,5 +27,6 @@ fn spawn_app() -> String {
     let api = server::run(listener).expect("Failed to bind address");
     let _ = tokio::spawn(api);
     // We return the application address to the caller!
-    format!("http://127.0.0.1:{}", port)
+    // format!("http://127.0.0.1:{}", port)
+    format!("http://127.0.0.1:{}", "3005")
 }
