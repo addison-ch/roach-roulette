@@ -39,23 +39,26 @@ async fn create_room(state: web::Data<AppState>) -> impl Responder {
     HttpResponse::Ok().json(room_code)
 }
 
-pub fn run(listener: TcpListener) -> Result<Server, std::io::Error> {
+pub fn run(_listener: TcpListener) -> Result<Server, std::io::Error> {
+    // pub fn run() -> Result<Server, std::io::Error> {
     let active_rooms = Arc::new(Mutex::new(std::collections::HashSet::new()));
     let app_state = web::Data::new(AppState { active_rooms });
 
-    let port = listener.local_addr().unwrap().port();
-    println!("Server running on http://127.0.0.1:{}", port);
-
+    // let port = _listener.local_addr().unwrap().port();
     let server = HttpServer::new(move || {
         let app_state = app_state.clone();
         App::new()
             .route("/", web::get().to(hello))
             .route("/health_check", web::get().to(health_check))
             .app_data(app_state)
-            .route("create_room", web::get().to(create_room))
+            .route("/create_room", web::get().to(create_room))
     })
-    .listen(listener)?
+    .bind("127.0.0.1:3005")?
     .run();
+
+    println!("Server running on http://127.0.0.1:3005");
 
     Ok(server)
 }
+
+// Add websocket server
