@@ -15,7 +15,7 @@ const RoomCreate: React.FC = () => {
 
     const handleClick = async () => {
         try {
-            const response = await axios.get<ApiResponse>('http://127.0.0.1:35111/create_room');
+            const response = await axios.get<ApiResponse>('http://127.0.0.1:3005/create_room');
             setData(response.data);
         } catch (error) {
             const axiosError = error as AxiosError;
