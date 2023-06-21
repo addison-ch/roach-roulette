@@ -1,6 +1,6 @@
 use crate::lobby::Lobby;
 use crate::messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
-use actix::{fut, ActorContext, ActorFuture, ContextFutureSpawner, WrapFuture};
+use actix::{fut, ActorContext, ContextFutureSpawner, WrapFuture};
 use actix::{Actor, Addr, Running, StreamHandler};
 use actix::{AsyncContext, Handler};
 use actix_web_actors::ws;
@@ -50,6 +50,7 @@ impl Actor for WsConn {
     type Context = ws::WebsocketContext<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
+        println!("Web socket started");
         self.hb(ctx);
 
         let addr = ctx.address();
@@ -100,7 +101,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsConn {
             }
             Ok(ws::Message::Nop) => (),
             // added "hi".to_string(), was original s
-            Ok(Text(s)) => self.lobby_addr.do_send(ClientActorMessage {
+            Ok(Text(_s)) => self.lobby_addr.do_send(ClientActorMessage {
                 id: self.id,
                 msg: "hi".to_string(),
                 room_id: self.room,

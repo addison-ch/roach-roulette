@@ -1,16 +1,17 @@
 #![allow(non_snake_case, non_camel_case_types, dead_code)]
 
-mod ws;
-mod utils;
 mod lobby;
-use lobby::Lobby;
+mod utils;
+mod ws;
 use actix_web::dev::Server;
+use lobby::Lobby;
 mod messages;
 mod start_connection;
-use start_connection::start_connection as start_connection_route;
 use actix::Actor;
+use start_connection::start_connection;
+use start_connection::supersimple;
 
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{web, web::Data, App, HttpResponse, HttpServer, Responder};
 use std::collections::HashMap;
 use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
@@ -51,51 +52,37 @@ async fn create_room(state: web::Data<AppState>) -> impl Responder {
     HttpResponse::Ok().json(room_code)
 }
 
-// async fn actors(){
-//     let instance = Lobby {
-//         sessions: HashMap::new(),
-//         rooms: HashMap::new(),
-//     };
-    
-//     let roach_server = instance.start();
-//     let result: Result<_, _> = roach_server.send(Connect).await;
-
-//     match result {
-//         Ok(res) => println!("Got result: {}", res.unwrap()),
-//         Err(err) => println!("Got error: {}", err),
-//     }
-// }
-
-// #[actix_rt::main]
-pub fn run() -> Result<Server, std::io::Error> {
+pub fn run(_listener: TcpListener) -> Result<Server, std::io::Error> {
     let active_rooms = Arc::new(Mutex::new(std::collections::HashMap::new()));
     let app_state = web::Data::new(AppState { active_rooms });
 
-    // actors();
     // start up the lobby
     let instance = Lobby {
         sessions: HashMap::new(),
         rooms: HashMap::new(),
     };
-    
+
     let roach_server = instance.start();
     println!("order");
-    // let anotherThing = roach_server.clone();
     // let port = _listener.local_addr().unwrap().port();
     let server = HttpServer::new(move || {
-        // let app_state = app_state.clone();
+        let app_state = app_state.clone();
+
         App::new()
+            .app_data(Data::new(roach_server.clone()))
+            .app_data(app_state)
             .route("/", web::get().to(hello))
             .route("/health_check", web::get().to(health_check))
-            // .app_data(app_state)
             .route("/create_room", web::get().to(create_room))
-            .app_data(roach_server.clone())
-            .service(start_connection_route)
+            .route(
+                "/start_connection/{uuid}/{u32}",
+                web::get().to(start_connection),
+            )
+            .route("/supersimple/{string}", web::get().to(supersimple))
     })
     .bind("127.0.0.1:3005")?
     .run();
 
     println!("Server running on http://127.0.0.1:3005");
-    // let anotherValue = anotherThing.clone();
     Ok(server)
 }
