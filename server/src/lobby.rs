@@ -2,14 +2,16 @@ use crate::messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
 use actix::prelude::{Actor, Context, Handler, Recipient};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
+use actix::Running;
+use actix::ActorContext;
 
 // Recipient type lets you send messages
 type Socket = Recipient<WsMessage>;
 
 // keeps track of all rooms and websocket connections
 pub struct Lobby {
-    sessions: HashMap<Uuid, Socket>, //self id to self
-    rooms: HashMap<Uuid, HashSet<Uuid>>, //room id map to list of users id
+    pub sessions: HashMap<Uuid, Socket>, //self id to self
+    pub rooms: HashMap<Uuid, HashSet<Uuid>>, //room id map to list of users id
 }
 
 // implements Default trait to Lobby, so that lobby has default values when you call default function
@@ -23,9 +25,12 @@ impl Default for Lobby {
 }
 
 impl Lobby {
-    fn send_message(&self, message: &str, id_to: &Uuid){
-        if let Some(socket_recipient) = self.sessions.get(id_to)  {
-            let _ = socket.recipient.do_send(WsMessage(message.to_owned()));
+    fn send_message(&self, message: &str, id_to: &Uuid) {
+        if let Some(socket_recipient) = self.sessions.get(id_to) {
+            let _ = socket_recipient
+                .do_send(WsMessage(message.to_owned()));
+        } else {
+            println!("attempting to send message but couldn't find user id.");
         }
     }
 }
@@ -33,4 +38,85 @@ impl Lobby {
 // makes lobby an actor, so that it can receive messages
 impl Actor for Lobby {
     type Context = Context<Self>;
+
+    fn started(&mut self, ctx: &mut Self::Context) {
+        println!("Actor started");
+        ctx.stop();
+    }
+
+    fn stopping(&mut self, ctx: &mut Context<Self>) -> Running {
+        println!("Actor is stopping");
+
+        Running::Stop
+    }
+    fn stopped(&mut self, ctx: &mut Context<Self>) {
+        println!("Actor is stopped");
+     }
+}
+
+// Connect new users to the lobby
+impl Handler<Connect> for Lobby {
+    type Result = ();
+
+    fn handle(&mut self, msg: Connect, _: &mut Context<Self>) -> Self::Result {
+        self.rooms
+            .entry(msg.lobby_id)
+            .or_insert_with(HashSet::new).insert(msg.self_id);
+
+        self
+            .rooms
+            .get(&msg.lobby_id)
+            .unwrap()
+            .iter()
+            .filter(|conn_id| *conn_id.to_owned() != msg.self_id)
+            .for_each(|conn_id| self.send_message(&format!("{} just joined!", msg.self_id), conn_id));
+
+        self.sessions.insert(
+            msg.self_id,
+            msg.addr,
+        );
+
+        self.send_message(&format!("your id is {}", msg.self_id), &msg.self_id);
+    }
+}
+
+
+// other stuff to stop the errors
+// handles disconnect
+impl Handler<Disconnect> for Lobby {
+    type Result = ();
+
+    fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) {
+        if self.sessions.remove(&msg.id).is_some() {
+            self.rooms
+                .get(&msg.room_id)
+                .unwrap()
+                .iter()
+                .filter(|conn_id| *conn_id.to_owned() != msg.id)
+                .for_each(|user_id| self.send_message(&format!("{} disconnected.", &msg.id), user_id));
+            if let Some(lobby) = self.rooms.get_mut(&msg.room_id) {
+                if lobby.len() > 1 {
+                    lobby.remove(&msg.id);
+                } else {
+                    //only one in the lobby, remove it entirely
+                    self.rooms.remove(&msg.room_id);
+                }
+            }
+        }
+    }
+}
+
+// not sure what this is for, but need to stop errors
+impl Handler<ClientActorMessage> for Lobby {
+    type Result = ();
+
+    fn handle(&mut self, msg: ClientActorMessage, _ctx: &mut Context<Self>) -> Self::Result {
+        if msg.msg.starts_with("\\w") {
+            if let Some(id_to) = msg.msg.split(' ').collect::<Vec<&str>>().get(1) {
+                self.send_message(&msg.msg, &Uuid::parse_str(id_to).unwrap());
+            }
+        } else {
+            self.rooms.get(&msg.room_id).unwrap().iter().for_each(|client| self.send_message(&msg.msg, client));
+        }
+    }
 }
