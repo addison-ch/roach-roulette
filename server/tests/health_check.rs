@@ -1,7 +1,8 @@
 //! tests/health_check.rs
+use actix_web::test;
 use std::net::TcpListener;
 
-#[tokio::test]
+#[actix_rt::test]
 async fn health_check_works() {
     // Arrange
     let address = spawn_app();
