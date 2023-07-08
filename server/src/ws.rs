@@ -41,7 +41,7 @@ impl WsConn {
                 return;
             }
 
-            ctx.ping(b"hi");
+            ctx.ping(b"Heartbeat ping");
         });
     }
 }
@@ -103,7 +103,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsConn {
             // added "hi".to_string(), was original s
             Ok(Text(_s)) => self.lobby_addr.do_send(ClientActorMessage {
                 id: self.id,
-                msg: "hi".to_string(),
+                msg: "Hey from the WsConn StreamHandler logic".to_string(),
                 room_id: self.room,
             }),
             Err(e) => std::panic::panic_any(e),
