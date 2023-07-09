@@ -8,16 +8,17 @@ interface ApiResponse {
     name: string;
     // etc...
 }
-
 const RoomJoin: React.FC = () => {
 
     const [data, setData] = useState<ApiResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [roomCode, setRoomCode] = useState<string>("");
+    const [users, setUsers] = useState<string[]>([]);
     const ws = useRef<WebSocket | null>(null);
 
-    useEffect(() => {
+    const joinRoom = (code: string) => {
         // Create a WebSocket instance
-        ws.current = new WebSocket(`ws://127.0.0.1:3005/start_connection/${uuid}/${int32}`);
+        ws.current = new WebSocket(`ws://127.0.0.1:3005/start_connection/${code}`);
 
         // Add an onOpen event listener to the WebSocket instance
         ws.current.onopen = () => {
@@ -26,8 +27,19 @@ const RoomJoin: React.FC = () => {
 
         // Add an onMessage event listener to the WebSocket instance
         ws.current.onmessage = (event) => {
-            console.log(event)
-            console.log('Received message:', event.data);
+            let data = JSON.parse(event.data);
+            if (data.type == "player_list") {
+                setUsers(data.users);
+                console.log(users)
+            } else if (data.type == "disconnect") {
+                console.log(data.msg)
+            } else if (data.type == "join") {
+                console.log(data.msg)
+            } else if (data.type == "welcome") {
+                console.log(data.msg)
+            }
+
+            // console.log('Received message:', data);
         };
 
         // Add an onClose event listener to the WebSocket instance
@@ -35,19 +47,15 @@ const RoomJoin: React.FC = () => {
             console.log('WebSocket connection closed');
         };
 
-        // Clean up the WebSocket instance on unmount
-        return () => {
-            if (ws.current) {
-                ws.current.close();
-            }
+        ws.current.onerror = (event) => {
+            setError('WebSocket connection error');
+            console.error('WebSocket connection error:', event);
         };
-    }, []);
-    const uuid = require('uuid').v4();
-    const int32 = Math.floor(Math.random() * 100) + 1;
+    }
 
     const handleClick = async () => {
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-            const message = 'Hello, WebSocket!';
+            const message = 'ping';
             ws.current.send(message);
             console.log('Sent message:', message);
         } else {
@@ -55,13 +63,39 @@ const RoomJoin: React.FC = () => {
         }
     };
 
+
+    const handlePlayers = async () => {
+        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+            const message = 'players';
+            ws.current.send(message);
+            console.log('Sent message:', message);
+        } else {
+            console.log('WebSocket connection not open');
+        }
+    };
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setRoomCode(event.target.value);
+    };
+
     return (
         <div>
+            <div>
+                <input type="text" value={roomCode} onChange={handleChange} />
+                <button onClick={() => joinRoom(roomCode)}>JOIN</button>
+            </div>
             <button onClick={handleClick}>
-                Click me
+                PING
+            </button>
+            <button onClick={handlePlayers}>
+                List players
             </button>
             {error && <p>Error: {error}</p>}
-            {data && <p>Data: {JSON.stringify(data)}</p>}
+            <div>
+                {users.map((user, index) => (
+                    <p key={index}>{user}</p>
+                ))}
+            </div>
         </div>
     )
 }

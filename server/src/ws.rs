@@ -1,5 +1,5 @@
 use crate::lobby::Lobby;
-use crate::messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
+use crate::messages::{ClientActorMessage, Connect, Disconnect, PlayerListMessage, WsMessage};
 use actix::{fut, ActorContext, ContextFutureSpawner, WrapFuture};
 use actix::{Actor, Addr, Running, StreamHandler};
 use actix::{AsyncContext, Handler};
@@ -41,7 +41,7 @@ impl WsConn {
                 return;
             }
 
-            ctx.ping(b"Heartbeat ping");
+            ctx.ping(b"Heartbeat");
         });
     }
 }
@@ -101,11 +101,22 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsConn {
             }
             Ok(ws::Message::Nop) => (),
             // added "hi".to_string(), was original s
-            Ok(Text(_s)) => self.lobby_addr.do_send(ClientActorMessage {
-                id: self.id,
-                msg: "Hey from the WsConn StreamHandler logic".to_string(),
-                room_id: self.room,
-            }),
+            Ok(Text(data)) => {
+                if data == "ping" {
+                    ctx.text("pong");
+                } else if data == "players" {
+                    self.lobby_addr.do_send(PlayerListMessage {
+                        id: self.id,
+                        room_id: self.room,
+                    });
+                } else {
+                    self.lobby_addr.do_send(ClientActorMessage {
+                        id: self.id,
+                        msg: "Hey from the WsConn StreamHandler logic".to_string(),
+                        room_id: self.room,
+                    })
+                }
+            }
             Err(e) => std::panic::panic_any(e),
         }
     }
@@ -114,8 +125,8 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsConn {
 // the actual messages that different users send
 impl Handler<WsMessage> for WsConn {
     type Result = ();
-
     fn handle(&mut self, msg: WsMessage, ctx: &mut Self::Context) {
+        println!("WsConn Handler<WsMessage> received: {}", msg.0);
         ctx.text(msg.0);
     }
 }
