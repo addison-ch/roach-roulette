@@ -16,11 +16,14 @@ use std::collections::HashMap;
 use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
 
+use serde_json::json;
 use utils::generate_room_code;
+use uuid::Uuid;
 
 // Struct that keeps track of application state, to keep things organized
-struct AppState {
+pub struct AppState {
     active_rooms: Arc<Mutex<HashMap<String, Vec<String>>>>,
+    room_code_by_id: Arc<Mutex<HashMap<String, Uuid>>>, // map of 6 digit code to Uuid
 }
 
 async fn hello() -> impl Responder {
@@ -37,6 +40,7 @@ async fn health_check() -> impl Responder {
 async fn create_room(state: web::Data<AppState>) -> impl Responder {
     // locks the data so that only one thread can access it at a time, unwrap is used to handle errors, it assumes the lock is successful
     let mut active_rooms = state.active_rooms.lock().unwrap();
+    let mut room_code_by_id = state.room_code_by_id.lock().unwrap();
 
     let mut room_code = generate_room_code();
     while active_rooms.contains_key(&room_code) {
@@ -44,22 +48,27 @@ async fn create_room(state: web::Data<AppState>) -> impl Responder {
     }
 
     active_rooms.insert(room_code.clone(), Vec::new());
+    room_code_by_id.insert(room_code.clone(), Uuid::new_v4());
     for (room, players) in active_rooms.iter() {
         println!("{}", room);
         println!("{:?}", players)
     }
 
-    HttpResponse::Ok().json(room_code)
+    HttpResponse::Ok().json(json!({ "code": room_code }))
 }
 
 pub fn run(_listener: TcpListener) -> Result<Server, std::io::Error> {
     let active_rooms = Arc::new(Mutex::new(std::collections::HashMap::new()));
-    let app_state = web::Data::new(AppState { active_rooms });
+    let room_code_by_id = Arc::new(Mutex::new(std::collections::HashMap::new()));
+    let app_state = web::Data::new(AppState {
+        active_rooms,
+        room_code_by_id,
+    });
 
     // start up the lobby
     let instance = Lobby {
         sessions: HashMap::new(),
-        rooms: HashMap::new()
+        rooms: HashMap::new(),
     };
 
     let roach_server = instance.start();
@@ -74,9 +83,8 @@ pub fn run(_listener: TcpListener) -> Result<Server, std::io::Error> {
             .route("/", web::get().to(hello))
             .route("/health_check", web::get().to(health_check))
             .route("/create_room", web::get().to(create_room))
-            .route(
-                "/start_connection/{uuid}/{u32}",
-                web::get().to(start_connection),
+            .service(
+                web::resource("/start_connection/{string}").route(web::get().to(start_connection)),
             )
             .route("/supersimple/{string}", web::get().to(supersimple))
     })

@@ -115,12 +115,12 @@ const GameBoard: React.FC = () => {
                   <div
                     style={{
                       display: "flex",
+                      zIndex: `${zValue}`,
                     }}
                   >
                     <motion.div
                       style={{
                         marginLeft: "-80px",
-                        zIndex: `${zValue}`,
                         border: `${
                           index === selectedCard ? "1px solid black" : "none"
                         }`,
