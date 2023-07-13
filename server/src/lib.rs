@@ -59,7 +59,7 @@ pub fn run(_listener: TcpListener) -> Result<Server, std::io::Error> {
     // start up the lobby
     let instance = Lobby {
         sessions: HashMap::new(),
-        rooms: HashMap::new(),
+        rooms: HashMap::new()
     };
 
     let roach_server = instance.start();

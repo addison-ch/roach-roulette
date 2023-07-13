@@ -15,6 +15,7 @@ pub async fn start_connection(
     println!("hello");
     // added this to fix error, not sure if will work
     let group_id = info.into_inner().0;
+    // random room generation code
     let ws = WsConn::new(group_id, srv.get_ref().clone());
 
     let resp: HttpResponse = ws::start(ws, &req, stream)?;
