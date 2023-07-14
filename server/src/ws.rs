@@ -57,7 +57,7 @@ impl Actor for WsConn {
         self.lobby_addr
             .send(Connect {
                 addr: addr.recipient(),
-                lobby_id: self.room,
+                room_id: self.room,
                 self_id: self.id,
             })
             .into_actor(self)
