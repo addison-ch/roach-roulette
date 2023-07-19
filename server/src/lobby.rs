@@ -74,23 +74,23 @@ impl Handler<Connect> for Lobby {
             event_type: "welcome".to_string(),
             id: msg.self_id,
             msg: format!("Your name is {}!", msg.self_id),
-            room_id: msg.lobby_id,
+            room_id: msg.room_id,
         };
 
         let join_notif = OutboundJoinMessage {
             event_type: "join".to_string(),
             id: msg.self_id,
             msg: format!("{} has joined the lobby!", msg.self_id),
-            room_id: msg.lobby_id,
+            room_id: msg.room_id,
         };
 
         self.rooms
-            .entry(msg.lobby_id)
+            .entry(msg.room_id)
             .or_insert_with(HashSet::new)
             .insert(msg.self_id);
 
         self.rooms
-            .get(&msg.lobby_id)
+            .get(&msg.room_id)
             .unwrap()
             .iter()
             .filter(|conn_id| *conn_id.to_owned() != msg.self_id)
