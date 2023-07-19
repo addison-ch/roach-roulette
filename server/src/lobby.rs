@@ -26,6 +26,10 @@ impl Lobby {
         }
     }
 
+    
+
+
+
     fn send_player_list(&self, room_id: &Uuid, id_to: &Uuid) {
         if let Some(users) = self.get_users_in_room(room_id) {
             let users: Vec<Uuid> = users.iter().cloned().collect();
