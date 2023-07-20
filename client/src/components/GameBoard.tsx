@@ -13,33 +13,6 @@ import { DndContext } from "@dnd-kit/core";
 
 import { Droppable } from "./Droppable";
 import { Draggable } from "./Draggable";
-const finalSpaceCharacters = [
-  {
-    id: "gary",
-    name: "Gary Goodspeed",
-    thumb: "/images/gary.png",
-  },
-  {
-    id: "cato",
-    name: "Little Cato",
-    thumb: "/images/cato.png",
-  },
-  {
-    id: "kvn",
-    name: "KVN",
-    thumb: "/images/kvn.png",
-  },
-  {
-    id: "mooncake",
-    name: "Mooncake",
-    thumb: "/images/mooncake.png",
-  },
-  {
-    id: "quinn",
-    name: "Quinn Ergon",
-    thumb: "/images/quinn.png",
-  },
-];
 
 const GameBoard: React.FC = () => {
   const [selectedCard, setSelectedCard] = useState(10);
