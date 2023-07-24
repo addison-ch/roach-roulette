@@ -1,109 +1,86 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios, { AxiosError } from 'axios';
+import React, { useState, useEffect, useRef } from "react";
+import axios, { AxiosError } from "axios";
+import useWebSocket from "../utils/useWebSocket";
 
 // Define the shape of the data you expect to receive from the API
 interface ApiResponse {
-    // Add the properties you expect to receive
-    id: number;
-    name: string;
-    // etc...
+  // Add the properties you expect to receive
+  id: number;
+  name: string;
+  // etc...
 }
 const RoomJoin: React.FC = () => {
+  const [joiningRoom, setJoiningRoom] = useState<boolean>(false);
+  const [data, setData] = useState<ApiResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [roomCode, setRoomCode] = useState<string>("");
+  const [users, setUsers] = useState<string[]>([]);
+  const [isButtonHidden, setButtonHidden] = useState(false);
+  const ws = useRef<WebSocket | null>(null);
 
-    const [data, setData] = useState<ApiResponse | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [roomCode, setRoomCode] = useState<string>("");
-    const [users, setUsers] = useState<string[]>([]);
-    const ws = useRef<WebSocket | null>(null);
-    const [isButtonHidden, setButtonHidden] = useState(false);
-    const [isWebSocketConnected, setWebSocketConnected] = useState(false);
+  const socketUrl = `ws://127.0.0.1:3005/start_connection/${roomCode}`;
+  const { isConnected, message, socketError, sendWebSocketMessage } =
+    useWebSocket(socketUrl, joiningRoom);
 
+  const joinRoom = (code: string) => {
+    setButtonHidden(true);
+    setJoiningRoom(true);
+    setRoomCode(code);
+  };
 
-    const joinRoom = (code: string) => {
-        // Create a WebSocket instance
-        ws.current = new WebSocket(`ws://127.0.0.1:3005/start_connection/${code}`);
+  // Handle received messages
+  useEffect(() => {
+    if (message != null) {
+      console.log("Received message:", message);
+      let data = JSON.parse(message);
 
-        // Add an onOpen event listener to the WebSocket instance
-        ws.current.onopen = () => {
-            console.log('WebSocket connection established');
-            setWebSocketConnected(true);
-        };
-
-        // Add an onMessage event listener to the WebSocket instance
-        ws.current.onmessage = (event) => {
-            let data = JSON.parse(event.data);
-            if (data.type == "player_list") {
-                setUsers(data.users);
-                console.log(users)
-            } else if (data.type == "disconnect") {
-                console.log(data.msg)
-            } else if (data.type == "join") {
-                console.log(data.msg)
-            } else if (data.type == "welcome") {
-                console.log(data.msg)
-            }
-
-            // console.log('Received message:', data);
-        };
-
-        // Add an onClose event listener to the WebSocket instance
-        ws.current.onclose = () => {
-            console.log('WebSocket connection closed');
-        };
-
-        ws.current.onerror = (event) => {
-            setError('WebSocket connection error');
-            console.error('WebSocket connection error:', event);
-        };
+      if (data.type == "player_list") {
+        setUsers(data.users);
+        console.log(users);
+      } else if (data.type == "disconnect") {
+        console.log(data.msg);
+      } else if (data.type == "join") {
+        console.log(data.msg);
+      } else if (data.type == "welcome") {
+        console.log(data.msg);
+      }
     }
+  }, [message]);
 
-    const handleClick = async () => {
-        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-            const message = 'ping';
-            ws.current.send(message);
-            console.log('Sent message:', message);
-            setButtonHidden(true);
-        } else {
-            console.log('WebSocket connection not open');
-        }
-    };
+  const handlePing = async () => {
+    const message = "ping";
+    sendWebSocketMessage(message);
+  };
 
+  const handlePlayers = async () => {
+    const message = "players";
+    sendWebSocketMessage(message);
+  };
 
-    const handlePlayers = async () => {
-        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-            const message = 'players';
-            ws.current.send(message);
-            console.log('Sent message:', message);
-        } else {
-            console.log('WebSocket connection not open');
-        }
-    };
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRoomCode(event.target.value);
+  };
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setRoomCode(event.target.value);
-    };
+  return (
+    <div>
+      <div>
+        {!isButtonHidden && (
+          <>
+            <input type="text" value={roomCode} onChange={handleChange} />
+            <button onClick={() => joinRoom(roomCode)}>JOIN</button>
+          </>
+        )}
+      </div>
+      <button onClick={handlePing}>PING</button>
+      <button onClick={handlePlayers}>List players</button>
+      {error && <p>Error: {error}</p>}
+      <div>
+        {users.map((user, index) => (
+          <p key={index}>{user}</p>
+        ))}
+      </div>
+    </div>
+  );
+};
 
-    return (
-        <div>
-            <div>
-            {!isButtonHidden && !isWebSocketConnected && (
-                <><input type="text" value={roomCode} onChange={handleChange} /><button onClick={() => joinRoom(roomCode)}>JOIN</button></>
-                )}
-            </div>
-            <button onClick={handleClick}>
-                PING
-            </button>
-            <button onClick={handlePlayers}>
-                List players
-            </button>
-            {error && <p>Error: {error}</p>}
-            <div>
-                {users.map((user, index) => (
-                    <p key={index}>{user}</p>
-                ))}
-            </div>
-        </div>
-    )
-}
-
-export default RoomJoin
+export default RoomJoin;
