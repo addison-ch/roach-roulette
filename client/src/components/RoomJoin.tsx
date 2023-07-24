@@ -15,6 +15,9 @@ const RoomJoin: React.FC = () => {
     const [roomCode, setRoomCode] = useState<string>("");
     const [users, setUsers] = useState<string[]>([]);
     const ws = useRef<WebSocket | null>(null);
+    const [isButtonHidden, setButtonHidden] = useState(false);
+    const [isWebSocketConnected, setWebSocketConnected] = useState(false);
+
 
     const joinRoom = (code: string) => {
         // Create a WebSocket instance
@@ -23,6 +26,7 @@ const RoomJoin: React.FC = () => {
         // Add an onOpen event listener to the WebSocket instance
         ws.current.onopen = () => {
             console.log('WebSocket connection established');
+            setWebSocketConnected(true);
         };
 
         // Add an onMessage event listener to the WebSocket instance
@@ -58,6 +62,7 @@ const RoomJoin: React.FC = () => {
             const message = 'ping';
             ws.current.send(message);
             console.log('Sent message:', message);
+            setButtonHidden(true);
         } else {
             console.log('WebSocket connection not open');
         }
@@ -81,8 +86,9 @@ const RoomJoin: React.FC = () => {
     return (
         <div>
             <div>
-                <input type="text" value={roomCode} onChange={handleChange} />
-                <button onClick={() => joinRoom(roomCode)}>JOIN</button>
+            {!isButtonHidden && !isWebSocketConnected && (
+                <><input type="text" value={roomCode} onChange={handleChange} /><button onClick={() => joinRoom(roomCode)}>JOIN</button></>
+                )}
             </div>
             <button onClick={handleClick}>
                 PING
