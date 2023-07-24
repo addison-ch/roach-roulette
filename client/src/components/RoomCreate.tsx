@@ -10,9 +10,10 @@ const RoomCreate: React.FC = () => {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [roomCode, setRoomCode] = useState<string>("");
+  const [isButtonHidden, setButtonHidden] = useState(false);
+  const [creatingRoom, setCreatingRoom] = useState<boolean>(false);
 
   const socketUrl = `ws://127.0.0.1:3005/start_connection/${roomCode}`;
-  const [creatingRoom, setCreatingRoom] = useState<boolean>(false);
 
   // websocket connection
   const { isConnected, message, socketError, sendWebSocketMessage } =
@@ -41,6 +42,7 @@ const RoomCreate: React.FC = () => {
       console.log(res.data.code);
       ws_start(res.data.code);
       setData(res.data);
+      setButtonHidden(true);
     } catch (error) {
       const axiosError = error as AxiosError;
       // Handle the error based on the response from the server
@@ -55,9 +57,12 @@ const RoomCreate: React.FC = () => {
       }
     }
   };
+
   return (
     <div>
-      <button onClick={handleClick}>Click me</button>
+      {isButtonHidden ? null : (
+        <button onClick={handleClick}>Click me here</button>
+      )}
       {error && <p>Error: {error}</p>}
       {data && <p>Data: {JSON.stringify(data)}</p>}
     </div>

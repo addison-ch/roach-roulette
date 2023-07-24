@@ -100,10 +100,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsConn {
                 ctx.stop();
             }
             Ok(ws::Message::Nop) => (),
-            // added "hi".to_string(), was original s
+
             Ok(Text(data)) => {
                 if data == "ping" {
-                    ctx.text("pong");
+                    ctx.text("pong"); // pong needs to be replaced with json.
                 } else if data == "players" {
                     self.lobby_addr.do_send(PlayerListMessage {
                         id: self.id,
