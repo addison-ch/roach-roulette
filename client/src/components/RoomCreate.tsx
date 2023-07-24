@@ -48,12 +48,16 @@ const RoomCreate: React.FC = () => {
         };
     }
 
+    const [isButtonHidden, setButtonHidden] = useState(false);
+
     const handleClick = async () => {
         try {
             const res = await axios.get<ApiResponse>('http://127.0.0.1:3005/create_room');
             console.log(res.data.code)
             ws_start(res.data.code);
             setData(res.data);
+            setButtonHidden(true);
+
         } catch (error) {
             const axiosError = error as AxiosError;
             // Handle the error based on the response from the server
@@ -66,11 +70,17 @@ const RoomCreate: React.FC = () => {
             }
         }
     };
+
+
+// const handleClick = () => {
+// };
     return (
         <div>
-            <button onClick={handleClick}>
-                Click me
-            </button>
+            {isButtonHidden ? null: (
+                <button onClick={handleClick}>
+                    Click me here
+                </button>
+            )}
             {error && <p>Error: {error}</p>}
             {data && <p>Data: {JSON.stringify(data)}</p>}
         </div>
