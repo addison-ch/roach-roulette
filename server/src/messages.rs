@@ -71,3 +71,12 @@ pub struct OutboundDisconnectMessage {
     pub msg: String,
     pub room_id: Uuid,
 }
+
+#[derive(Message, Serialize)]
+#[rtype(result = "()")]
+pub struct GeneralMessage {
+    #[serde(rename = "type")]
+    pub event_type: String,
+    pub msg: String,
+    pub room_id: Uuid,
+}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios, { AxiosError } from "axios";
 import useWebSocket from "../utils/useWebSocket";
+import { useNavigate } from "react-router-dom";
 
 // Define the shape of the data you expect to receive from the API
 interface ApiResponse {
@@ -16,6 +17,7 @@ const RoomJoin: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
   const socketUrl = `ws://127.0.0.1:3005/start_connection/${roomCode}`;
   const [joiningRoom, setJoiningRoom] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   // websocket connection
   const { isConnected, message, socketError, sendWebSocketMessage } =
@@ -41,6 +43,9 @@ const RoomJoin: React.FC = () => {
         console.log(data.msg);
       } else if (data.type == "welcome") {
         console.log(data.msg);
+      } else if (data.type == "start_game") {
+        console.log("Game started");
+        navigate("/game");
       }
     }
   }, [message]);
