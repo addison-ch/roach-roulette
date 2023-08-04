@@ -1,6 +1,7 @@
 use crate::messages::{
-    ClientActorMessage, Connect, Disconnect, OutboundDisconnectMessage, OutboundJoinMessage,
-    OutboundPlayerListMessage, OutboundWelcomeMessage, PlayerListMessage, WsMessage, GeneralMessage
+    ClientActorMessage, Connect, Disconnect, GeneralMessage, OutboundDisconnectMessage,
+    OutboundJoinMessage, OutboundPlayerListMessage, OutboundWelcomeMessage, PlayerListMessage,
+    WsMessage,
 };
 use actix::prelude::{Actor, Context, Handler, Recipient};
 use std::collections::{HashMap, HashSet};
@@ -179,8 +180,6 @@ impl Handler<GeneralMessage> for Lobby {
             .get(&msg.room_id)
             .unwrap()
             .iter()
-            .for_each(|conn_id| {
-                self.send_message(&serde_json::to_string(&msg).unwrap(), conn_id)
-            });
+            .for_each(|conn_id| self.send_message(&serde_json::to_string(&msg).unwrap(), conn_id));
     }
 }

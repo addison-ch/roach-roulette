@@ -1,5 +1,7 @@
 use crate::lobby::Lobby;
-use crate::messages::{ClientActorMessage, Connect, Disconnect, PlayerListMessage, WsMessage, GeneralMessage};
+use crate::messages::{
+    ClientActorMessage, Connect, Disconnect, GeneralMessage, PlayerListMessage, WsMessage,
+};
 use actix::{fut, ActorContext, ContextFutureSpawner, WrapFuture};
 use actix::{Actor, Addr, Running, StreamHandler};
 use actix::{AsyncContext, Handler};
@@ -109,15 +111,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsConn {
                         id: self.id,
                         room_id: self.room,
                     });
-                } 
-                else if data == "start_game"{
-                    self.lobby_addr.do_send(GeneralMessage{
+                } else if data == "start_game" {
+                    self.lobby_addr.do_send(GeneralMessage {
                         event_type: "start_game".to_string(),
                         msg: "success".to_string(),
                         room_id: self.room,
                     })
-                }
-                else {
+                } else {
                     self.lobby_addr.do_send(ClientActorMessage {
                         id: self.id,
                         msg: "Hey from the WsConn StreamHandler logic".to_string(),
