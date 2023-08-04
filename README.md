@@ -1,6 +1,5 @@
 # roach-roulette
-work in progress...
-
+Currently under development... stay tuned...
 
 # set up
 frontend
