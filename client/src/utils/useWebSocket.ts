@@ -33,8 +33,10 @@ const useWebSocket = (socketUrl: any, shouldConnect: any) => {
 
       socketRef.current = newSocket;
 
+      // gets called when component unmounts
+      // close when page is closed or when user leaves game
       return () => {
-        newSocket.close();
+        // newSocket.close();
       };
     }
   }, [socketUrl, shouldConnect]);

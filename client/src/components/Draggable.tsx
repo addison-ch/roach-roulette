@@ -14,7 +14,6 @@ export function Draggable(props: any) {
     : {
         ...props.style,
       };
-  console.log("dragging", isDragging);
 
   return (
     <button ref={setNodeRef} style={style} {...listeners} {...attributes}>

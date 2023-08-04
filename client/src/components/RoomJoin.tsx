@@ -42,6 +42,7 @@ const RoomJoin: React.FC = () => {
       } else if (data.type == "join") {
         console.log(data.msg);
       } else if (data.type == "welcome") {
+        console.log("welcome");
         console.log(data.msg);
       } else if (data.type == "start_game") {
         console.log("Game started");
