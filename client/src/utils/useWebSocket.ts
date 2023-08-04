@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const useWebSocket = (socketUrl: any, shouldConnect: any) => {
+const useWebSocket = (socketUrl: string, shouldConnect: boolean) => {
   const socketRef = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [message, setMessage] = useState(null);
@@ -41,7 +41,7 @@ const useWebSocket = (socketUrl: any, shouldConnect: any) => {
     }
   }, [socketUrl, shouldConnect]);
 
-  const sendWebSocketMessage = (message: any) => {
+  const sendWebSocketMessage = (message: string) => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(message);
       console.log("Sent message:", message);

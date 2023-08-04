@@ -15,8 +15,10 @@ const RoomJoin: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [roomCode, setRoomCode] = useState<string>("");
   const [users, setUsers] = useState<any[]>([]);
-  const socketUrl = `ws://127.0.0.1:3005/start_connection/${roomCode}`;
   const [joiningRoom, setJoiningRoom] = useState<boolean>(false);
+  const [isButtonHidden, setButtonHidden] = useState(false);
+
+  const socketUrl = `ws://127.0.0.1:3005/start_connection/${roomCode}`;
   const navigate = useNavigate();
 
   // websocket connection
@@ -24,6 +26,7 @@ const RoomJoin: React.FC = () => {
     useWebSocket(socketUrl, joiningRoom);
 
   const joinRoom = (code: string) => {
+    setButtonHidden(true);
     setJoiningRoom(true);
     setRoomCode(code);
   };
@@ -51,7 +54,7 @@ const RoomJoin: React.FC = () => {
     }
   }, [message]);
 
-  const handleClick = async () => {
+  const handlePing = async () => {
     const message = "ping";
     sendWebSocketMessage(message);
   };
@@ -68,10 +71,14 @@ const RoomJoin: React.FC = () => {
   return (
     <div>
       <div>
-        <input type="text" value={roomCode} onChange={handleChange} />
-        <button onClick={() => joinRoom(roomCode)}>JOIN</button>
+        {!isButtonHidden && (
+          <>
+            <input type="text" value={roomCode} onChange={handleChange} />
+            <button onClick={() => joinRoom(roomCode)}>JOIN</button>
+          </>
+        )}
       </div>
-      <button onClick={handleClick}>PING</button>
+      <button onClick={handlePing}>PING</button>
       <button onClick={handlePlayers}>List players</button>
       {error && <p>Error: {error}</p>}
       <div>

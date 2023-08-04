@@ -13,6 +13,8 @@ const RoomCreate: React.FC = () => {
   const [creatingRoom, setCreatingRoom] = useState<boolean>(false);
   const [startedRoom, setStartedRoom] = useState<boolean>(false);
   const [users, setUsers] = useState<any[]>([]);
+  const [isButtonHidden, setButtonHidden] = useState(false);
+
   const navigate = useNavigate();
 
   const socketUrl = `ws://127.0.0.1:3005/start_connection/${roomCode}`;
@@ -50,6 +52,7 @@ const RoomCreate: React.FC = () => {
       console.log(res.data.code);
       ws_start(res.data.code);
       setData(res.data);
+      setButtonHidden(true);
     } catch (error) {
       const axiosError = error as AxiosError;
       // Handle the error based on the response from the server
@@ -72,7 +75,9 @@ const RoomCreate: React.FC = () => {
 
   return (
     <div>
-      <button onClick={handleClick}>Click me</button>
+      {isButtonHidden ? null : (
+        <button onClick={handleClick}>Click me here</button>
+      )}
       {error && <p>Error: {error}</p>}
       {data && <p>Data: {JSON.stringify(data)}</p>}
       {startedRoom && (
