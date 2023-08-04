@@ -78,10 +78,8 @@ const GameBoard: React.FC = () => {
               let zValue: any;
               if (index > selectedCard) {
                 zValue = list.length - index;
-                console.log("VALUE", index, zValue);
               } else if (index < selectedCard) {
                 zValue = index;
-                console.log("NOT VALUE", index);
               }
               return (
                 <Draggable key={"yourHand" + index} id={"yourHand" + index}>

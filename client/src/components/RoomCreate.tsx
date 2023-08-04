@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios, { AxiosError } from "axios";
 import useWebSocket from "../utils/useWebSocket";
-
+import { useNavigate } from "react-router-dom";
 interface ApiResponse {
   code: string;
 }
@@ -10,8 +10,12 @@ const RoomCreate: React.FC = () => {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [roomCode, setRoomCode] = useState<string>("");
-  const [isButtonHidden, setButtonHidden] = useState(false);
   const [creatingRoom, setCreatingRoom] = useState<boolean>(false);
+  const [startedRoom, setStartedRoom] = useState<boolean>(false);
+  const [users, setUsers] = useState<any[]>([]);
+  const [isButtonHidden, setButtonHidden] = useState(false);
+
+  const navigate = useNavigate();
 
   const socketUrl = `ws://127.0.0.1:3005/start_connection/${roomCode}`;
 
@@ -30,7 +34,13 @@ const RoomCreate: React.FC = () => {
   // Handle received messages
   useEffect(() => {
     if (message) {
+      setStartedRoom(true);
       console.log("Received message:", message);
+      let data = JSON.parse(message);
+      if (data.type == "start_game") {
+        console.log("Game started");
+        navigate("/game");
+      }
     }
   }, [message]);
 
@@ -58,6 +68,11 @@ const RoomCreate: React.FC = () => {
     }
   };
 
+  const startGame = async () => {
+    const message = "start_game";
+    sendWebSocketMessage(message);
+  };
+
   return (
     <div>
       {isButtonHidden ? null : (
@@ -65,6 +80,17 @@ const RoomCreate: React.FC = () => {
       )}
       {error && <p>Error: {error}</p>}
       {data && <p>Data: {JSON.stringify(data)}</p>}
+      {startedRoom && (
+        <>
+          <button
+            disabled={users.length < 0 ? true : false}
+            style={{ border: "1px solid black" }}
+            onClick={startGame}
+          >
+            Start Game
+          </button>
+        </>
+      )}
     </div>
   );
 };

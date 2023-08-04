@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios, { AxiosError } from "axios";
 import useWebSocket from "../utils/useWebSocket";
+import { useNavigate } from "react-router-dom";
 
 // Define the shape of the data you expect to receive from the API
 interface ApiResponse {
@@ -10,15 +11,17 @@ interface ApiResponse {
   // etc...
 }
 const RoomJoin: React.FC = () => {
-  const [joiningRoom, setJoiningRoom] = useState<boolean>(false);
   const [data, setData] = useState<ApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [roomCode, setRoomCode] = useState<string>("");
-  const [users, setUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [joiningRoom, setJoiningRoom] = useState<boolean>(false);
   const [isButtonHidden, setButtonHidden] = useState(false);
-  const ws = useRef<WebSocket | null>(null);
 
   const socketUrl = `ws://127.0.0.1:3005/start_connection/${roomCode}`;
+  const navigate = useNavigate();
+
+  // websocket connection
   const { isConnected, message, socketError, sendWebSocketMessage } =
     useWebSocket(socketUrl, joiningRoom);
 
@@ -42,7 +45,11 @@ const RoomJoin: React.FC = () => {
       } else if (data.type == "join") {
         console.log(data.msg);
       } else if (data.type == "welcome") {
+        console.log("welcome");
         console.log(data.msg);
+      } else if (data.type == "start_game") {
+        console.log("Game started");
+        navigate("/game");
       }
     }
   }, [message]);
